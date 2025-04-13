@@ -1,0 +1,681 @@
+<!DOCTYPE html><html lang="en" data-mode="dark" ><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><meta name="google-adsense-account" content="ca-pub-5206656295129943"><meta name="generator" content="Jekyll v4.2.2" /><meta property="og:title" content="Public and Private Istio Ingress Gateways on AWS" /><meta property="og:locale" content="en" /><meta name="description" content="A place where I can share my experiences with all things Kubernetes and Technology related." /><meta property="og:description" content="A place where I can share my experiences with all things Kubernetes and Technology related." /><link rel="canonical" href="https://newtondev.github.io/posts/public-and-private-istio-ingress-gateways-on-aws/" /><meta property="og:url" content="https://newtondev.github.io/posts/public-and-private-istio-ingress-gateways-on-aws/" /><meta property="og:site_name" content="Craig Newton" /><meta property="og:type" content="article" /><meta property="article:published_time" content="2019-08-30T14:00:00+02:00" /><meta name="twitter:card" content="summary" /><meta property="twitter:title" content="Public and Private Istio Ingress Gateways on AWS" /><meta name="twitter:site" content="@craignewtondev" /> <script type="application/ld+json"> {"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2019-08-30T14:00:00+02:00","datePublished":"2019-08-30T14:00:00+02:00","description":"A place where I can share my experiences with all things Kubernetes and Technology related.","headline":"Public and Private Istio Ingress Gateways on AWS","mainEntityOfPage":{"@type":"WebPage","@id":"https://newtondev.github.io/posts/public-and-private-istio-ingress-gateways-on-aws/"},"url":"https://newtondev.github.io/posts/public-and-private-istio-ingress-gateways-on-aws/"}</script><title>Public and Private Istio Ingress Gateways on AWS | Craig Newton</title><link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png"><link rel="manifest" href="/assets/img/favicons/site.webmanifest"><link rel="shortcut icon" href="/assets/img/favicons/favicon.ico"><meta name="apple-mobile-web-app-title" content="Craig Newton"><meta name="application-name" content="Craig Newton"><meta name="msapplication-TileColor" content="#da532c"><meta name="msapplication-config" content="/assets/img/favicons/browserconfig.xml"><meta name="theme-color" content="#ffffff"><link rel="preconnect" href="https://fonts.googleapis.com" ><link rel="dns-prefetch" href="https://fonts.googleapis.com" ><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="dns-prefetch" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://fonts.googleapis.com" ><link rel="dns-prefetch" href="https://fonts.googleapis.com" ><link rel="preconnect" href="https://cdn.jsdelivr.net" ><link rel="dns-prefetch" href="https://cdn.jsdelivr.net" ><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"><link rel="preconnect" href="https://www.google-analytics.com" crossorigin="use-credentials"><link rel="dns-prefetch" href="https://www.google-analytics.com"><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin="anonymous"><link rel="dns-prefetch" href="https://www.googletagmanager.com"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.2/css/all.min.css"><link rel="stylesheet" href="/assets/css/style.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/magnific-popup@1/dist/magnific-popup.min.css"> <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script><body data-spy="scroll" data-target="#toc" data-topbar-visible="true"><div id="sidebar" class="d-flex flex-column align-items-end"><div class="profile-wrapper text-center"><div id="avatar"> <a href="/" class="mx-auto"> <img src="https://pbs.twimg.com/profile_images/1573218316889595904/hncWRiAJ_400x400.jpg" alt="avatar" onerror="this.style.display='none'"> </a></div><div class="site-title mt-3"> <a href="/">Craig Newton</a></div><div class="site-subtitle font-italic">DevOps Engineer and Technology Evangelist</div></div><ul class="w-100"><li class="nav-item"> <a href="/" class="nav-link"> <i class="fa-fw fas fa-home ml-xl-3 mr-xl-3 unloaded"></i> <span>HOME</span> </a><li class="nav-item"> <a href="/categories/" class="nav-link"> <i class="fa-fw fas fa-stream ml-xl-3 mr-xl-3 unloaded"></i> <span>CATEGORIES</span> </a><li class="nav-item"> <a href="/tags/" class="nav-link"> <i class="fa-fw fas fa-tag ml-xl-3 mr-xl-3 unloaded"></i> <span>TAGS</span> </a><li class="nav-item"> <a href="/archives/" class="nav-link"> <i class="fa-fw fas fa-archive ml-xl-3 mr-xl-3 unloaded"></i> <span>ARCHIVES</span> </a><li class="nav-item"> <a href="/about/" class="nav-link"> <i class="fa-fw fas fa-info-circle ml-xl-3 mr-xl-3 unloaded"></i> <span>ABOUT</span> </a><li class="nav-item"> <a href="/books/" class="nav-link"> <i class="fa-fw fas fa-book ml-xl-3 mr-xl-3 unloaded"></i> <span>BOOKS</span> </a></ul><div class="sidebar-bottom mt-auto d-flex flex-wrap justify-content-center align-items-center"> <a href="https://github.com/newtondev" aria-label="github" target="_blank" rel="noopener"> <i class="fab fa-github"></i> </a> <a href="https://twitter.com/craignewtondev" aria-label="twitter" target="_blank" rel="noopener"> <i class="fab fa-twitter"></i> </a> <a href="https://www.linkedin.com/in/craig-newton-18a31923/" aria-label="linkedin" target="_blank" rel="noopener"> <i class="fab fa-linkedin"></i> </a> <a href="https://craignewtondev.medium.com/" aria-label="medium" target="_blank" rel="noopener"> <i class="fab fa-medium"></i> </a> <a href="/feed.xml" aria-label="rss" > <i class="fas fa-rss"></i> </a></div></div><div id="topbar-wrapper"><div id="topbar" class="container d-flex align-items-center justify-content-between h-100 pl-3 pr-3 pl-md-4 pr-md-4"> <span id="breadcrumb"> <span> <a href="/"> Home </a> </span> <span>Public and Private Istio Ingress Gateways on AWS</span> </span> <i id="sidebar-trigger" class="fas fa-bars fa-fw"></i><div id="topbar-title"> Post</div><i id="search-trigger" class="fas fa-search fa-fw"></i> <span id="search-wrapper" class="align-items-center"> <i class="fas fa-search fa-fw"></i> <input class="form-control" id="search-input" type="search" aria-label="search" autocomplete="off" placeholder="Search..."> </span> <span id="search-cancel" >Cancel</span></div></div><div id="main-wrapper" class="d-flex justify-content-center"><div id="main" class="container pl-xl-4 pr-xl-4"><div class="row"><div id="core-wrapper" class="col-12 col-lg-11 col-xl-9 pr-xl-4"><div class="post pl-1 pr-1 pl-md-2 pr-md-2"><h1 data-toc-skip>Public and Private Istio Ingress Gateways on AWS</h1><div class="post-meta text-muted"> <span> Posted <em class="" data-ts="1567166400" data-df="ll" data-toggle="tooltip" data-placement="bottom"> Aug 30, 2019 </em> </span><div class="d-flex justify-content-between"> <span> By <em> <a href="https://twitter.com/craignewtondev">Craig Newton</a> </em> </span><div> <span class="readtime" data-toggle="tooltip" data-placement="bottom" title="1798 words"> <em>9 min</em> read</span></div></div></div><div class="post-content"><p><img data-src="/assets/img/2019/09/dusk.jpeg" alt="Public and Private Istio Ingress Gateways on AWS" data-proofer-ignore></p><p>By default, istio creates a service with a publicly accessible classic load balancer (ELB). However, there are times where we only want access from our internal network or a network we are connected to via a secure VPN.</p><p>To achieve this we need a copy of our current ingressgateway <strong>service</strong> and <strong>deployment</strong> configuration.</p><p>The command below will output our current configuration to a file:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl get svc istio-ingressgateway <span class="nt">-n</span> istio-system <span class="nt">-o</span> yaml <span class="o">&gt;</span> istio-pvt-ingressgateway.yaml
+</pre></table></code></div></div><p>Open the file in your favourite text editor and get ready to make some changes to the file. You can remove all the auto-generated fields. What you will need to add to create an NLB is the annotation <code class="language-plaintext highlighter-rouge">service.beta.kubernetes.io/aws-load-balancer-type: "nlb"</code>. If however if you prefer the classic load balancer (ELB), then just remove this annotation. The next annotation we need to add is <code class="language-plaintext highlighter-rouge">service.beta.kubernetes.io/aws-load-balancer-internal: "true"</code>. This annotation will ensure that this load balancer is only available to other services within your VPC. This is great for microservices that do not need to be exposed to public traffic, or for access on your company intranet connected via VPN to your VPC.</p><p>What you will need to change in the file is the following:</p><ol><li><p>change the <code class="language-plaintext highlighter-rouge">name</code> to anything you want: I changed it from <code class="language-plaintext highlighter-rouge">istio-ingressgateway</code> to <code class="language-plaintext highlighter-rouge">istio-pvt-ingressgateway</code></p><li><p>change the <code class="language-plaintext highlighter-rouge">app</code> label to anything you want: I changed it from <code class="language-plaintext highlighter-rouge">istio-ingressgateway</code> to <code class="language-plaintext highlighter-rouge">istio-pvt-ingressgateway</code></p><li><p>change the <code class="language-plaintext highlighter-rouge">istio</code> label to anything you want: I changed it from <code class="language-plaintext highlighter-rouge">ingressgateway</code> to <code class="language-plaintext highlighter-rouge">pvt-ingressgateway</code></p><li><p>in the <code class="language-plaintext highlighter-rouge">selector</code> configuration section update the <code class="language-plaintext highlighter-rouge">app</code> and <code class="language-plaintext highlighter-rouge">istio</code> label to match the values you defined in the metadata <code class="language-plaintext highlighter-rouge">labels</code> section</p><li><p>remove all the <code class="language-plaintext highlighter-rouge">nodePort</code> values from the <code class="language-plaintext highlighter-rouge">ports</code> configuration so that the newly created service allocated the ports automatically</p><li><p>now is your chance to add on any additional ports that you want to use</p></ol><div class="language-yml highlighter-rouge"><div class="code-header"> <span data-label-text="YAML"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+</pre><td class="rouge-code"><pre><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">annotations</span><span class="pi">:</span>    
+    <span class="na">service.beta.kubernetes.io/aws-load-balancer-type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">nlb"</span>
+    <span class="na">service.beta.kubernetes.io/aws-load-balancer-internal</span><span class="pi">:</span> <span class="s2">"</span><span class="s">true"</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">istio-pvt-ingressgateway</span>
+    <span class="na">chart</span><span class="pi">:</span> <span class="s">gateways</span>
+    <span class="na">heritage</span><span class="pi">:</span> <span class="s">Tiller</span>
+    <span class="na">istio</span><span class="pi">:</span> <span class="s">pvt-ingressgateway</span>
+    <span class="na">release</span><span class="pi">:</span> <span class="s">istio</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">istio-pvt-ingressgateway</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">istio-system</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">ports</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">status-port</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">15020</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">15020</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http2</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">443</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">443</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">smpp</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">2775</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">2775</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">tcp</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">31400</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">31400</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https-kiali</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">15029</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">15029</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https-prometheus</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">15030</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">15030</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https-grafana</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">15031</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">15031</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https-tracing</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">15032</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">15032</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">tls</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">15443</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">15443</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">istio-pvt-ingressgateway</span>
+    <span class="na">istio</span><span class="pi">:</span> <span class="s">pvt-ingressgateway</span>
+    <span class="na">release</span><span class="pi">:</span> <span class="s">istio</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+</pre></table></code></div></div><p>Now save and apply that file:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl apply <span class="nt">-f</span> istio-pvt-ingressgateway.yaml
+</pre></table></code></div></div><p>Wait for your load balancer to become operational. After a few minutes, you can check the status of the load balancer and creation:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl get svc <span class="nt">-n</span> istio-system | <span class="nb">grep </span>istio-pvt-ingressgateway
+</pre></table></code></div></div><p>You should see the DNS name of your load balancer and you can log into your AWS and verify that the load balancer created is indeed an NLB where Type is <code class="language-plaintext highlighter-rouge">network</code> and that the Scheme is <code class="language-plaintext highlighter-rouge">internal</code>.</p><p>Now feel free to create any domain/subdomain in Route53 and point it to your load balancer DNS as an A record alias.</p><p>The next step would be to create a copy of the <code class="language-plaintext highlighter-rouge">istio-ingressgateway</code> <strong>deployment</strong> and change it to facilitate the new service we have created:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl get deployment/istio-ingressgateway <span class="nt">-n</span> istio-system <span class="nt">-o</span> yaml <span class="o">&gt;</span> istio-pvt-ingressgateway-deployment.yaml
+</pre></table></code></div></div><p>Open up the newly created <code class="language-plaintext highlighter-rouge">file</code> in a text editor and remove the standard fields that are automatically created (clean up the file a bit, you don’t have to).</p><ol><li><p>We then need to change the <code class="language-plaintext highlighter-rouge">name</code> to something a bit more custom: I changed mine to match the service which is <code class="language-plaintext highlighter-rouge">name: istio-pvt-ingressgateway</code></p><li><p>We need to change the <code class="language-plaintext highlighter-rouge">app</code> labels as well to <code class="language-plaintext highlighter-rouge">app: istio-pvt-ingressgateway</code></p><li><p>We need to change the <code class="language-plaintext highlighter-rouge">istio</code> labels to <code class="language-plaintext highlighter-rouge">istio: pvt-ingressgateway</code></p><li><p>Feel free to add on any additional <code class="language-plaintext highlighter-rouge">ports</code> you need to be defined.</p></ol><div class="language-yml highlighter-rouge"><div class="code-header"> <span data-label-text="YAML"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+</pre><td class="rouge-code"><pre><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">extensions/v1beta1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">istio-pvt-ingressgateway</span>
+    <span class="na">chart</span><span class="pi">:</span> <span class="s">gateways</span>
+    <span class="na">heritage</span><span class="pi">:</span> <span class="s">Tiller</span>
+    <span class="na">istio</span><span class="pi">:</span> <span class="s">pvt-ingressgateway</span>
+    <span class="na">release</span><span class="pi">:</span> <span class="s">istio</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">istio-pvt-ingressgateway</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">istio-system</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">istio-pvt-ingressgateway</span>
+      <span class="na">istio</span><span class="pi">:</span> <span class="s">pvt-ingressgateway</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">annotations</span><span class="pi">:</span>
+        <span class="na">sidecar.istio.io/inject</span><span class="pi">:</span> <span class="s2">"</span><span class="s">false"</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">istio-pvt-ingressgateway</span>
+        <span class="na">chart</span><span class="pi">:</span> <span class="s">gateways</span>
+        <span class="na">heritage</span><span class="pi">:</span> <span class="s">Tiller</span>
+        <span class="na">istio</span><span class="pi">:</span> <span class="s">pvt-ingressgateway</span>
+        <span class="na">release</span><span class="pi">:</span> <span class="s">istio</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">affinity</span><span class="pi">:</span>
+        <span class="na">nodeAffinity</span><span class="pi">:</span>
+          <span class="na">preferredDuringSchedulingIgnoredDuringExecution</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">preference</span><span class="pi">:</span>
+              <span class="na">matchExpressions</span><span class="pi">:</span>
+              <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">beta.kubernetes.io/arch</span>
+                <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+                <span class="na">values</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">amd64</span>
+            <span class="na">weight</span><span class="pi">:</span> <span class="m">2</span>
+          <span class="pi">-</span> <span class="na">preference</span><span class="pi">:</span>
+              <span class="na">matchExpressions</span><span class="pi">:</span>
+              <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">beta.kubernetes.io/arch</span>
+                <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+                <span class="na">values</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">ppc64le</span>
+            <span class="na">weight</span><span class="pi">:</span> <span class="m">2</span>
+          <span class="pi">-</span> <span class="na">preference</span><span class="pi">:</span>
+              <span class="na">matchExpressions</span><span class="pi">:</span>
+              <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">beta.kubernetes.io/arch</span>
+                <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+                <span class="na">values</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">s390x</span>
+            <span class="na">weight</span><span class="pi">:</span> <span class="m">2</span>
+          <span class="na">requiredDuringSchedulingIgnoredDuringExecution</span><span class="pi">:</span>
+            <span class="na">nodeSelectorTerms</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">matchExpressions</span><span class="pi">:</span>
+              <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">beta.kubernetes.io/arch</span>
+                <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+                <span class="na">values</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">amd64</span>
+                <span class="pi">-</span> <span class="s">ppc64le</span>
+                <span class="pi">-</span> <span class="s">s390x</span>
+              <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">kubelet.kubernetes.io/role</span>
+                <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+                <span class="na">values</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">management</span>
+      <span class="na">containers</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">args</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">proxy</span>
+        <span class="pi">-</span> <span class="s">router</span>
+        <span class="pi">-</span> <span class="s">--domain</span>
+        <span class="pi">-</span> <span class="s">$(POD_NAMESPACE).svc.cluster.local</span>
+        <span class="pi">-</span> <span class="s">--log_output_level=default:info</span>
+        <span class="pi">-</span> <span class="s">--drainDuration</span>
+        <span class="pi">-</span> <span class="s">45s</span>
+        <span class="pi">-</span> <span class="s">--parentShutdownDuration</span>
+        <span class="pi">-</span> <span class="s">1m0s</span>
+        <span class="pi">-</span> <span class="s">--connectTimeout</span>
+        <span class="pi">-</span> <span class="s">10s</span>
+        <span class="pi">-</span> <span class="s">--serviceCluster</span>
+        <span class="pi">-</span> <span class="s">istio-ingressgateway</span>
+        <span class="pi">-</span> <span class="s">--zipkinAddress</span>
+        <span class="pi">-</span> <span class="s">zipkin:9411</span>
+        <span class="pi">-</span> <span class="s">--proxyAdminPort</span>
+        <span class="pi">-</span> <span class="s2">"</span><span class="s">15000"</span>
+        <span class="pi">-</span> <span class="s">--statusPort</span>
+        <span class="pi">-</span> <span class="s2">"</span><span class="s">15020"</span>
+        <span class="pi">-</span> <span class="s">--controlPlaneAuthPolicy</span>
+        <span class="pi">-</span> <span class="s">NONE</span>
+        <span class="pi">-</span> <span class="s">--discoveryAddress</span>
+        <span class="pi">-</span> <span class="s">istio-pilot:15010</span>
+        <span class="na">env</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">NODE_NAME</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">spec.nodeName</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">POD_NAME</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">metadata.name</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">POD_NAMESPACE</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">metadata.namespace</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">INSTANCE_IP</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">status.podIP</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">HOST_IP</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">status.hostIP</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">ISTIO_META_POD_NAME</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">metadata.name</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">ISTIO_META_CONFIG_NAMESPACE</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">metadata.namespace</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">ISTIO_META_ROUTER_MODE</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s">sni-dnat</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">gcr.io/istio-release/proxyv2:master-latest-daily</span>
+        <span class="na">imagePullPolicy</span><span class="pi">:</span> <span class="s">IfNotPresent</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">istio-proxy</span>
+        <span class="na">ports</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">15020</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">443</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">31400</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">15029</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">15030</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">15031</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">15032</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">15443</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">15090</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">http-envoy-prom</span>
+          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+        <span class="na">readinessProbe</span><span class="pi">:</span>
+          <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">30</span>
+          <span class="na">httpGet</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s">/healthz/ready</span>
+            <span class="na">port</span><span class="pi">:</span> <span class="m">15020</span>
+            <span class="na">scheme</span><span class="pi">:</span> <span class="s">HTTP</span>
+          <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">1</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">2</span>
+          <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">1</span>
+          <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">resources</span><span class="pi">:</span>
+          <span class="na">limits</span><span class="pi">:</span>
+            <span class="na">cpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">2"</span>
+            <span class="na">memory</span><span class="pi">:</span> <span class="s">1Gi</span>
+          <span class="na">requests</span><span class="pi">:</span>
+            <span class="na">cpu</span><span class="pi">:</span> <span class="s">100m</span>
+            <span class="na">memory</span><span class="pi">:</span> <span class="s">128Mi</span>
+        <span class="na">volumeMounts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/etc/certs</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">istio-certs</span>
+          <span class="na">readOnly</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="pi">-</span> <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/etc/istio/ingressgateway-certs</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">ingressgateway-certs</span>
+          <span class="na">readOnly</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="pi">-</span> <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/etc/istio/ingressgateway-ca-certs</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">ingressgateway-ca-certs</span>
+          <span class="na">readOnly</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">serviceAccount</span><span class="pi">:</span> <span class="s">istio-ingressgateway-service-account</span>
+      <span class="na">serviceAccountName</span><span class="pi">:</span> <span class="s">istio-ingressgateway-service-account</span>
+      <span class="na">tolerations</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">effect</span><span class="pi">:</span> <span class="s">NoSchedule</span>
+        <span class="na">key</span><span class="pi">:</span> <span class="s">dedicated</span>
+        <span class="na">operator</span><span class="pi">:</span> <span class="s">Equal</span>
+        <span class="na">value</span><span class="pi">:</span> <span class="s">management</span>
+      <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">istio-certs</span>
+        <span class="na">secret</span><span class="pi">:</span>
+          <span class="na">defaultMode</span><span class="pi">:</span> <span class="m">420</span>
+          <span class="na">optional</span><span class="pi">:</span> <span class="no">true</span>
+          <span class="na">secretName</span><span class="pi">:</span> <span class="s">istio.istio-ingressgateway-service-account</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">ingressgateway-certs</span>
+        <span class="na">secret</span><span class="pi">:</span>
+          <span class="na">defaultMode</span><span class="pi">:</span> <span class="m">420</span>
+          <span class="na">optional</span><span class="pi">:</span> <span class="no">true</span>
+          <span class="na">secretName</span><span class="pi">:</span> <span class="s">istio-ingressgateway-certs</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">ingressgateway-ca-certs</span>
+        <span class="na">secret</span><span class="pi">:</span>
+          <span class="na">defaultMode</span><span class="pi">:</span> <span class="m">420</span>
+          <span class="na">optional</span><span class="pi">:</span> <span class="no">true</span>
+          <span class="na">secretName</span><span class="pi">:</span> <span class="s">istio-ingressgateway-ca-certs</span>
+</pre></table></code></div></div><p>Now we want to apply that deployment:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl apply <span class="nt">-f</span> istio-pvt-ingressgateway-deployment.yaml
+</pre></table></code></div></div><p>You can now check to ensure that the pod is running:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl get pods <span class="nt">-n</span> istio-system | <span class="nb">grep </span>istio-pvt-ingressgateway
+</pre></table></code></div></div><p>Next, create an istio gateway configuration and ensure that the <code class="language-plaintext highlighter-rouge">selector</code> is set to what we created earlier on in the private gateway service. In my case it was <code class="language-plaintext highlighter-rouge">istio: pvt-ingressgateway</code>. This selector will use that label to be used with our service configuration.</p><div class="language-yml highlighter-rouge"><div class="code-header"> <span data-label-text="YAML"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre><td class="rouge-code"><pre><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">networking.istio.io/v1alpha3</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Gateway</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">myapp-gateway</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">istio</span><span class="pi">:</span> <span class="s">pvt-ingressgateway</span>
+  <span class="na">servers</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span>
+      <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">HTTP</span>
+    <span class="na">hosts</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s2">"</span><span class="s">myapp.mydomain.com"</span>
+</pre></table></code></div></div><p>Apply the file:</p><div class="language-plaintext highlighter-rouge"><div class="code-header"> <span data-label-text="Plaintext"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl apply -f gateway.yaml
+</pre></table></code></div></div><p>Now we can just follow the normal convention of deploying the rest of the istio configuration and kubernetes configuration for our application.</p><h2 id="bonus--rest-of-the-configuration-for-an-istio-based-application"><span class="mr-2">Bonus — rest of the configuration for an istio based application</span><a href="#bonus--rest-of-the-configuration-for-an-istio-based-application" class="anchor text-muted"><i class="fas fa-hashtag"></i></a></h2><p>Once we have a gateway configuration setup we now need a virtual service. The virtual service acts as a firewall to your application. In the config, you can define some really amazing routing rules and whitelisting/blacklisting.</p><p>Here is an example config for a pretty standard HTTP application:</p><div class="language-yml highlighter-rouge"><div class="code-header"> <span data-label-text="YAML"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre><td class="rouge-code"><pre><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">networking.istio.io/v1alpha3</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">VirtualService</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">myapp</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">hosts</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s2">"</span><span class="s">myapp.mydomain.com"</span>
+  <span class="na">gateways</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">myapp-gateway</span>
+  <span class="na">http</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">match</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">authority</span><span class="pi">:</span>
+        <span class="na">exact</span><span class="pi">:</span> <span class="s2">"</span><span class="s">myapp.mydomain.com"</span>
+    <span class="na">route</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">destination</span><span class="pi">:</span>
+        <span class="na">port</span><span class="pi">:</span>
+          <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+        <span class="na">host</span><span class="pi">:</span> <span class="s">myapp</span>
+</pre></table></code></div></div><p>Apply the file:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl apply <span class="nt">-f</span> virtualservice.yaml
+</pre></table></code></div></div><p>Next, we need a standard Kubernetes service:</p><div class="language-yml highlighter-rouge"><div class="code-header"> <span data-label-text="YAML"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre><td class="rouge-code"><pre><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">myapp</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">myapp</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">ports</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">myapp</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">NodePort</span>
+</pre></table></code></div></div><p>Apply the file:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl apply <span class="nt">-f</span> service.yaml
+</pre></table></code></div></div><p>And then we need our standard Kubernetes deployment:</p><div class="language-yml highlighter-rouge"><div class="code-header"> <span data-label-text="YAML"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre><td class="rouge-code"><pre><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">myapp</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">myapp</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">myapp</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:1.7.9</span>
+        <span class="na">ports</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+</pre></table></code></div></div><p>Now before we apply the deployment, because we are using istio, we need to remember to inject the envoy sidecar, unless of course, you have added the auto-injection to your namespace. If not, remember to run the following:</p><div class="language-shell highlighter-rouge"><div class="code-header"> <span data-label-text="Shell"><i class="fas fa-code small"></i></span> <button aria-label="copy" data-title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>kubectl apply <span class="nt">-f</span> &lt;<span class="o">(</span>istioctl kube-inject <span class="nt">-f</span> deployment.yaml<span class="o">)</span>
+</pre></table></code></div></div><p>Wait for a few seconds (maybe minute or two), then try to access your service using your URL (from within your VPC, preferably on the VPN). Mine was <code class="language-plaintext highlighter-rouge">http://myapp.mydomain.com</code></p><p>If all went well then you should now be able to access your service from within your network (VPC) and no prying eyes allowed from outside your network.</p><p>Please leave comments if this was helpful, or if you have questions, or if you have a better way to implement this.</p><p>Thank you for reading.</p><p>Medium Article: <a href="https://medium.com/swlh/public-and-private-istio-ingress-gateways-on-aws-f968783d62fe">https://medium.com/swlh/public-and-private-istio-ingress-gateways-on-aws-f968783d62fe</a></p></div><div class="post-tail-wrapper text-muted"><div class="post-meta mb-3"> <i class="far fa-folder-open fa-fw mr-1"></i> <a href='/categories/kubernetes/'>kubernetes</a>, <a href='/categories/aws/'>aws</a></div><div class="post-tags"> <i class="fa fa-tags fa-fw mr-1"></i> <a href="/tags/kubernetes/" class="post-tag no-text-decoration" >kubernetes</a> <a href="/tags/aws/" class="post-tag no-text-decoration" >aws</a> <a href="/tags/istio/" class="post-tag no-text-decoration" >istio</a> <a href="/tags/gateways/" class="post-tag no-text-decoration" >gateways</a></div><div class="post-tail-bottom d-flex justify-content-between align-items-center mt-3 pt-5 pb-2"><div class="license-wrapper"> This post is licensed under <a href="https://creativecommons.org/licenses/by/4.0/"> CC BY 4.0 </a> by the author.</div><div class="share-wrapper"> <span class="share-label text-muted mr-1">Share</span> <span class="share-icons"> <a href="https://twitter.com/intent/tweet?text=Public+and+Private+Istio+Ingress+Gateways+on+AWS+-+Craig+Newton&url=https%3A%2F%2Fnewtondev.github.io%2Fposts%2Fpublic-and-private-istio-ingress-gateways-on-aws%2F" data-toggle="tooltip" data-placement="top" title="Twitter" target="_blank" rel="noopener" aria-label="Twitter"> <i class="fa-fw fab fa-twitter"></i> </a> <a href="https://www.facebook.com/sharer/sharer.php?title=Public+and+Private+Istio+Ingress+Gateways+on+AWS+-+Craig+Newton&u=https%3A%2F%2Fnewtondev.github.io%2Fposts%2Fpublic-and-private-istio-ingress-gateways-on-aws%2F" data-toggle="tooltip" data-placement="top" title="Facebook" target="_blank" rel="noopener" aria-label="Facebook"> <i class="fa-fw fab fa-facebook-square"></i> </a> <a href="https://t.me/share/url?url=https%3A%2F%2Fnewtondev.github.io%2Fposts%2Fpublic-and-private-istio-ingress-gateways-on-aws%2F&text=Public+and+Private+Istio+Ingress+Gateways+on+AWS+-+Craig+Newton" data-toggle="tooltip" data-placement="top" title="Telegram" target="_blank" rel="noopener" aria-label="Telegram"> <i class="fa-fw fab fa-telegram"></i> </a> <i id="copy-link" class="fa-fw fas fa-link small" data-toggle="tooltip" data-placement="top" title="Copy link" data-title-succeed="Link copied successfully!"> </i> </span></div></div></div></div></div><div id="panel-wrapper" class="col-xl-3 pl-2 text-muted"><div class="access"><div id="access-tags"><div class="panel-heading">Trending Tags</div><div class="d-flex flex-wrap mt-3 mb-1 mr-3"> <a class="post-tag" href="/tags/kubernetes/">kubernetes</a> <a class="post-tag" href="/tags/aws/">aws</a> <a class="post-tag" href="/tags/azure/">azure</a> <a class="post-tag" href="/tags/cloud/">cloud</a> <a class="post-tag" href="/tags/cron/">cron</a> <a class="post-tag" href="/tags/docker/">docker</a> <a class="post-tag" href="/tags/efs/">efs</a> <a class="post-tag" href="/tags/eip/">eip</a> <a class="post-tag" href="/tags/gateways/">gateways</a> <a class="post-tag" href="/tags/gcp/">gcp</a></div></div></div><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script><div id="toc-wrapper" class="pl-0 pr-4 mb-5"><div class="panel-heading pl-3 pt-2 mb-2">Contents</div><nav id="toc" data-toggle="toc"></nav></div></div></div><div class="row"><div id="tail-wrapper" class="col-12 col-lg-11 col-xl-9 pl-3 pr-3 pr-xl-4"><div id="related-posts" class="mt-5 mb-2 mb-sm-4"><h3 class="pt-2 mt-1 mb-4 ml-1" data-toc-skip>Further Reading</h3><div class="card-deck mb-4"><div class="card"> <a href="/posts/how-to-assign-an-eip-to-an-aws-nlb-in-kubernetes/"><div class="card-body"> <em class="small" data-ts="1559995200" data-df="ll" > Jun 8, 2019 </em><h3 class="pt-0 mt-1 mb-3" data-toc-skip>How to assign an EIP to an AWS NLB in Kubernetes</h3><div class="text-muted small"><p> Out of the box Kubernetes has no support for assigning an EIP to an AWS Network Load Balancer. There is currently a pull request for this feature listed here: https://github.com/kubernetes/kubernet...</p></div></div></a></div><div class="card"> <a href="/posts/kubernetes-on-aws-gotcha-when-using-efs/"><div class="card-body"> <em class="small" data-ts="1645531200" data-df="ll" > Feb 22, 2022 </em><h3 class="pt-0 mt-1 mb-3" data-toc-skip>Kubernetes on AWS — gotcha when using EFS</h3><div class="text-muted small"><p> I was happily migrating a lot of applications over to EKS when my pods went into an Init state. Panic set in and I was having a look around at what the problem could be (what is it this time, I s...</p></div></div></a></div><div class="card"> <a href="/posts/building-a-kubernetes-cluster-from-scratch/"><div class="card-body"> <em class="small" data-ts="1657368000" data-df="ll" > Jul 9, 2022 </em><h3 class="pt-0 mt-1 mb-3" data-toc-skip>Building a Kubernetes cluster on AWS from scratch</h3><div class="text-muted small"><p> These days rolling out a Kubernetes cluster on any cloud provider is quite simple and easy, but not always cost effective. Us as DevOps/Ops Engineers are spoilt with the ease of configuration and...</p></div></div></a></div></div></div><div class="post-navigation d-flex justify-content-between"> <a href="/posts/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state/" class="btn btn-outline-primary" prompt="Older"><p>How to fix — Kubernetes namespace deleting stuck in Terminating state</p></a> <a href="/posts/how-to-run-a-kubernetes-cron-job-manually-as-a-one-time-job/" class="btn btn-outline-primary" prompt="Newer"><p>How to run a Kubernetes cron job manually as a one time job</p></a></div></div></div><footer class="row pl-3 pr-3"><div class="col-12 d-flex justify-content-between align-items-center text-muted pl-0 pr-0"><div class="footer-left"><p class="mb-0"> © 2025 <a href="https://twitter.com/craignewtondev">Craig Newton</a>. <span data-toggle="tooltip" data-placement="top" title="Except where otherwise noted, the blog posts on this site are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License by the author.">Some rights reserved.</span></p></div><div class="footer-right"><p class="mb-0"> Powered by <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a> with <a href="https://github.com/cotes2020/jekyll-theme-chirpy" target="_blank" rel="noopener">Chirpy</a> theme.</p></div></div></footer></div><div id="search-result-wrapper" class="d-flex justify-content-center unloaded"><div class="col-12 col-sm-11 post-content"><div id="search-hints"><div id="access-tags"><div class="panel-heading">Trending Tags</div><div class="d-flex flex-wrap mt-3 mb-1 mr-3"> <a class="post-tag" href="/tags/kubernetes/">kubernetes</a> <a class="post-tag" href="/tags/aws/">aws</a> <a class="post-tag" href="/tags/azure/">azure</a> <a class="post-tag" href="/tags/cloud/">cloud</a> <a class="post-tag" href="/tags/cron/">cron</a> <a class="post-tag" href="/tags/docker/">docker</a> <a class="post-tag" href="/tags/efs/">efs</a> <a class="post-tag" href="/tags/eip/">eip</a> <a class="post-tag" href="/tags/gateways/">gateways</a> <a class="post-tag" href="/tags/gcp/">gcp</a></div></div></div><div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div></div></div></div><div id="mask"></div><a id="back-to-top" href="#" aria-label="back-to-top" class="btn btn-lg btn-box-shadow" role="button"> <i class="fas fa-angle-up"></i> </a><div id="notification" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-animation="true" data-autohide="false"><div class="toast-header"> <button type="button" class="ml-2 ml-auto close" data-dismiss="toast" aria-label="Close"> <span aria-hidden="true">&times;</span> </button></div><div class="toast-body text-center pt-0"><p class="pl-2 pr-2 mb-3">A new version of content is available.</p><button type="button" class="btn btn-primary" aria-label="Update"> Update </button></div></div><script src="https://cdn.jsdelivr.net/npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js"></script> <script> SimpleJekyllSearch({ searchInput: document.getElementById('search-input'), resultsContainer: document.getElementById('search-results'), json: '/assets/js/data/search.json', searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0"> <a href="{url}">{title}</a><div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1"> {categories} {tags}</div><p>{snippet}</p></div>', noResultsText: '<p class="mt-5">Oops! No results found.</p>', templateMiddleware: function(prop, value, template) { if (prop === 'categories') { if (value === '') { return `${value}`; } else { return `<div class="mr-sm-4"><i class="far fa-folder fa-fw"></i>${value}</div>`; } } if (prop === 'tags') { if (value === '') { return `${value}`; } else { return `<div><i class="fa fa-tag fa-fw"></i>${value}</div>`; } } } }); </script> <script src="https://cdn.jsdelivr.net/combine/npm/magnific-popup@1/dist/jquery.magnific-popup.min.js,npm/lozad/dist/lozad.min.js,npm/clipboard@2/dist/clipboard.min.js"></script> <script src="https://cdn.jsdelivr.net/combine/npm/dayjs@1/dayjs.min.js,npm/dayjs@1/locale/en.min.js,npm/dayjs@1/plugin/relativeTime.min.js,npm/dayjs@1/plugin/localizedFormat.min.js"></script> <script defer src="/assets/js/dist/post.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.bundle.min.js"></script> <script defer src="/app.js"></script> <script defer src="https://www.googletagmanager.com/gtag/js?id=G-Z9HKJNH86F"></script> <script> document.addEventListener("DOMContentLoaded", function(event) { window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-Z9HKJNH86F'); }); </script>
